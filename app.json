@@ -4,7 +4,7 @@
     "slug": "vipvideo",
     "owner": "jianlong2021",
     "version": "1.0.0",
-    "orientation": "portrait",
+
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -17,7 +17,8 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "requireFullScreen": true
     },
     "android": {
       "adaptiveIcon": {

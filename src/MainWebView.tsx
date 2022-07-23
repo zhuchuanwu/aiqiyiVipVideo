@@ -11,6 +11,7 @@ import { parse } from "node-html-parser";
 import { t } from "react-native-tailwindcss";
 import { useNavigation } from "@react-navigation/native";
 import NavigationLeftButton from "./navigation/NavigationLeftButton/NavigationLeftButton";
+import * as ScreenOrientation from "expo-screen-orientation";
 
 const runFirst = `
 
@@ -117,6 +118,13 @@ function MainWebView() {
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({ headerShown: !showVideo });
+    if (showVideo) {
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
+      );
+    } else {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }
   }, [showVideo]);
 
   useEffect(() => {
