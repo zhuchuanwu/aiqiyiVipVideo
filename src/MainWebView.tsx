@@ -1,6 +1,7 @@
 import { createParser, ErrorCode, TagType } from "htmljs-parser";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Platform,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -118,12 +119,14 @@ function MainWebView() {
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({ headerShown: !showVideo });
-    if (showVideo) {
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
-      );
-    } else {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    if (Platform.OS === "android") {
+      if (showVideo) {
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
+        );
+      } else {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
+      }
     }
   }, [showVideo]);
 
@@ -210,7 +213,7 @@ function MainWebView() {
               t.pY2,
               t.bgBlack,
               t.right0,
-              t.mT4,
+              t.mT8,
               t.mR2,
               t.flexRow,
             ]}
