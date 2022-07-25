@@ -119,15 +119,15 @@ function MainWebView() {
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({ headerShown: !showVideo });
-    if (Platform.OS === "android") {
-      if (showVideo) {
-        ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
-        );
-      } else {
-        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
-      }
+
+    if (showVideo) {
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
+      );
+    } else {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
     }
+    // }
   }, [showVideo]);
 
   useEffect(() => {
