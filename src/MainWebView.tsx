@@ -15,8 +15,8 @@ import NavigationLeftButton from "./navigation/NavigationLeftButton/NavigationLe
 import * as ScreenOrientation from "expo-screen-orientation";
 
 const runFirst = `
-
 function destroyIframe(){ 
+    window.ReactNativeWebView.postMessage(window.location.href);
     var iframes = document.getElementsByTagName("iframe");
     for (var i = 0; i < iframes.length; i++) {
         var iframe = iframes[i];
@@ -109,6 +109,35 @@ function destroyIframe(){
 };
  destroyIframe();
 `;
+
+const replaceVideo = `
+var ifrm = document.createElement("iframe");
+ifrm.setAttribute("id", "ifrm"); // assign an id
+// assign url
+ifrm.setAttribute(
+  "src",
+  "https://okjx.cc/?url=" + window.location.href
+);
+ifrm.setAttribute("allowfullscreen", false);
+ifrm.setAttribute("frameborder", "0");
+ifrm.setAttribute("scrolling", "no");
+ifrm.setAttribute("width", "100%");
+ifrm.setAttribute("height", "100%");
+ifrm.setAttribute("style", "display:block;");
+ifrm.setAttribute("border", 0);
+ifrm.setAttribute("position", "absolute");
+
+
+document.getElementsByClassName("m-video-player-wrap")[0].style.paddingTop=0
+document.getElementsByClassName("m-video-player-wrap")[0].style.height="350px"
+for (let index = 0; index < document.getElementsByClassName("m-video-player-wrap")[0].children.length; index++) {
+  let item = document.getElementsByClassName("m-video-player-wrap")[0].children[index];
+  item.remove();
+}
+document.getElementsByClassName("m-video-player-wrap")[0].appendChild(ifrm);
+window.ReactNativeWebView.postMessage("success");
+`;
+
 function MainWebView() {
   const { width, height } = useWindowDimensions();
   const webRef = useRef<WebView | null>(null);
@@ -138,13 +167,13 @@ function MainWebView() {
         ) : null,
     });
   }, [cangoBack]);
-  useEffect(() => {
-    if (webRef.current) {
-      setInterval(() => {
-        webRef.current?.injectJavaScript(runFirst);
-      }, 1000);
-    }
-  }, [webRef.current]);
+  // useEffect(() => {
+  //   if (webRef.current) {
+  //     setInterval(() => {
+  //       webRef.current?.injectJavaScript(replaceVideo);
+  //     }, 1000);
+  //   }
+  // }, [webRef.current]);
 
   return (
     <View style={[{ width, height: height - 50 }]}>
@@ -154,6 +183,7 @@ function MainWebView() {
         onLoadEnd={() => {
           webRef.current?.injectJavaScript(runFirst);
         }}
+        setSupportMultipleWindows={false}
         onNavigationStateChange={(res) => {
           webRef.current?.injectJavaScript(runFirst);
           navigation.setOptions({ title: res.title });
@@ -169,11 +199,12 @@ function MainWebView() {
                 (res.url.startsWith("https://www.iqiyi.com/v_") ||
                   res.url.startsWith("https://m.iqiyi.com/v_"))
               ) {
-                setVideoUrl("https://okjx.cc/?url=" + res.url);
+                // setVideoUrl("https://okjx.cc/?url=" + res.url);
                 // alert("https://okjx.cc/?url=" + res.url);
-                console.log("https://okjx.cc/?url=" + res.url);
-
-                setShowVideo(true);
+                // console.log("https://okjx.cc/?url=" + res.url);
+                webRef.current?.injectJavaScript(runFirst);
+                webRef.current?.injectJavaScript(replaceVideo);
+                // setShowVideo(true);
               }
             })
             .catch((err) => {});
@@ -192,6 +223,9 @@ function MainWebView() {
           return false;
         }}
         source={{ uri: "https://www.iqiyi.com/" }}
+        onMessage={(src) => {
+          // alert("成功");
+        }}
       />
 
       {showVideo && (
