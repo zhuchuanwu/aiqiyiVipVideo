@@ -178,113 +178,70 @@ function MainWebView() {
   }, [cangoBack]);
 
   return (
-    <View style={[{ width, height: height - 50 }]}>
-      <WebView
-        allowsInlineMediaPlayback={true}
-        // injectedJavaScript={runFirst}
-        ref={webRef}
-        onLoadEnd={() => {
-          webRef.current?.injectJavaScript(runFirst);
-        }}
-        onTouchEnd={() => {
-          //安卓点击切换集数的时候 不走onNavigationStateChange，改用postmessage获取当前window href的方式
-          if (Platform.OS === "android") {
-            webRef.current?.injectJavaScript(getCurrentUrl);
-          }
-        }}
-        onNavigationStateChange={(res) => {
-          webRef.current?.injectJavaScript(runFirst);
-          navigation.setOptions({ title: res.title });
-          setCangoBack(res.canGoBack);
-
-          fetch(res.url)
-            .then((res) => res.text())
-            .then((text) => {
-              if (
-                text.indexOf("schema.org/VideoObject") > -1 &&
-                (res.url.startsWith("https://www.iqiyi.com/v_") ||
-                  res.url.startsWith("https://m.iqiyi.com/v_"))
-              ) {
-                webRef.current?.injectJavaScript(runFirst);
-                webRef.current?.injectJavaScript(replaceVideo);
-                webRef.current?.injectJavaScript(biddenFullScreen);
-              }
-            })
-            .catch((err) => {});
-        }}
-        onShouldStartLoadWithRequest={(res) => {
-          //   webRef.current?.injectJavaScript(runFirst);
-          if (res.url.indexOf("www.iqiyi.com/app") > -1) {
-            return false;
-          }
-          if (res.url.indexOf("iqiyi://mobile") > -1) {
-            return false;
-          }
-          if (res.url.startsWith("https:")) {
-            return true;
-          }
+    <WebView
+      style={[{ width, height: height }]}
+      allowsInlineMediaPlayback={true}
+      mixedContentMode={"compatibility"}
+      allowsFullscreenVideo={true}
+      ref={webRef}
+      onLoadEnd={() => {
+        webRef.current?.injectJavaScript(runFirst);
+      }}
+      onTouchEnd={() => {
+        //安卓点击切换集数的时候 不走onNavigationStateChange，改用postmessage获取当前window href的方式
+        if (Platform.OS === "android") {
+          webRef.current?.injectJavaScript(getCurrentUrl);
+        }
+      }}
+      onNavigationStateChange={(res) => {
+        webRef.current?.injectJavaScript(runFirst);
+        navigation.setOptions({ title: res.title });
+        setCangoBack(res.canGoBack);
+        setVideoUrl(res.url);
+        fetch(res.url)
+          .then((res) => res.text())
+          .then((text) => {
+            if (
+              text.indexOf("schema.org/VideoObject") > -1 &&
+              (res.url.startsWith("https://www.iqiyi.com/v_") ||
+                res.url.startsWith("https://m.iqiyi.com/v_"))
+            ) {
+              webRef.current?.injectJavaScript(runFirst);
+              webRef.current?.injectJavaScript(replaceVideo);
+              webRef.current?.injectJavaScript(biddenFullScreen);
+            }
+          })
+          .catch((err) => {});
+      }}
+      onShouldStartLoadWithRequest={(res) => {
+        //   webRef.current?.injectJavaScript(runFirst);
+        if (res.url.indexOf("www.iqiyi.com/app") > -1) {
           return false;
-        }}
-        source={{ uri: "https://www.iqiyi.com/" }}
-        onMessage={(src) => {
-          if (Platform.OS === "android") {
-            try {
-              const data = JSON.parse(src.nativeEvent.data);
-              if (data.type === "url" && videoUrl !== data.message?.url) {
-                setVideoUrl(data.message.url);
-                alert(src.nativeEvent.data);
+        }
+        if (res.url.indexOf("iqiyi://mobile") > -1) {
+          return false;
+        }
+        if (res.url.startsWith("https:")) {
+          return true;
+        }
+        return false;
+      }}
+      source={{ uri: "https://www.iqiyi.com/" }}
+      onMessage={(src) => {
+        if (Platform.OS === "android") {
+          try {
+            const data = JSON.parse(src.nativeEvent.data);
+            if (data.type === "url" && videoUrl !== data.message?.url) {
+              setVideoUrl(data.message.url);
+              alert(src.nativeEvent.data);
 
-                webRef.current?.injectJavaScript(runFirst);
-                webRef.current?.injectJavaScript(replaceVideo);
-              }
-            } catch (error) {}
-          }
-        }}
-      />
-
-      {/* {showVideo && (
-        <View
-          style={[
-            { width, height, position: "absolute" },
-            t.absolute,
-            t.top0,
-            t.left0,
-            t.right0,
-            t.bottom0,
-          ]}
-        >
-          <WebView source={{ uri: videoUrl }} />
-          <View
-            style={[
-              t.absolute,
-              t.pX3,
-              t.pY2,
-              t.bgBlack,
-              t.right0,
-              t.mT8,
-              t.mR2,
-              t.flexRow,
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                webRef.current?.reload();
-              }}
-            >
-              <Text style={[t.textWhite]}>重试</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setShowVideo(false);
-              }}
-              style={[t.mL4]}
-            >
-              <Text style={[t.textWhite]}>关闭</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )} */}
-    </View>
+              webRef.current?.injectJavaScript(runFirst);
+              webRef.current?.injectJavaScript(replaceVideo);
+            }
+          } catch (error) {}
+        }
+      }}
+    />
   );
 }
 
