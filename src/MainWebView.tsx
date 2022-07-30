@@ -233,8 +233,6 @@ function MainWebView() {
             const data = JSON.parse(src.nativeEvent.data);
             if (data.type === "url" && videoUrl !== data.message?.url) {
               setVideoUrl(data.message.url);
-              alert(src.nativeEvent.data);
-
               webRef.current?.injectJavaScript(runFirst);
               webRef.current?.injectJavaScript(replaceVideo);
             }
