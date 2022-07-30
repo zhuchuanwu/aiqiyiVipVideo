@@ -135,9 +135,12 @@ for (let index = 0; index < document.getElementsByClassName("m-video-player-wrap
   item.remove();
 }
 document.getElementsByClassName("m-video-player-wrap")[0].appendChild(ifrm);
-window.ReactNativeWebView.postMessage("success");
+window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
 `;
 
+const getCurrentUrl = `
+ window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title},"type":"url"}));
+`;
 function MainWebView() {
   const { width, height } = useWindowDimensions();
   const webRef = useRef<WebView | null>(null);
@@ -148,7 +151,6 @@ function MainWebView() {
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({ headerShown: !showVideo });
-
     if (showVideo) {
       ScreenOrientation.lockAsync(
         ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
@@ -167,13 +169,6 @@ function MainWebView() {
         ) : null,
     });
   }, [cangoBack]);
-  // useEffect(() => {
-  //   if (webRef.current) {
-  //     setInterval(() => {
-  //       webRef.current?.injectJavaScript(replaceVideo);
-  //     }, 1000);
-  //   }
-  // }, [webRef.current]);
 
   return (
     <View style={[{ width, height: height - 50 }]}>
@@ -183,31 +178,31 @@ function MainWebView() {
         onLoadEnd={() => {
           webRef.current?.injectJavaScript(runFirst);
         }}
-        setSupportMultipleWindows={false}
+        onTouchEnd={() => {
+          //安卓点击切换集数的时候 不走onNavigationStateChange，改用postmessage获取当前window href的方式
+          if (Platform.OS === "android") {
+            webRef.current?.injectJavaScript(getCurrentUrl);
+          }
+        }}
         onNavigationStateChange={(res) => {
           webRef.current?.injectJavaScript(runFirst);
           navigation.setOptions({ title: res.title });
           setCangoBack(res.canGoBack);
-          fetch(res.url)
-            .then((res) => res.text())
-            .then((text) => {
-              console.log("====================================");
-              console.log(text);
-              console.log("====================================");
-              if (
-                text.indexOf("schema.org/VideoObject") > -1 &&
-                (res.url.startsWith("https://www.iqiyi.com/v_") ||
-                  res.url.startsWith("https://m.iqiyi.com/v_"))
-              ) {
-                // setVideoUrl("https://okjx.cc/?url=" + res.url);
-                // alert("https://okjx.cc/?url=" + res.url);
-                // console.log("https://okjx.cc/?url=" + res.url);
-                webRef.current?.injectJavaScript(runFirst);
-                webRef.current?.injectJavaScript(replaceVideo);
-                // setShowVideo(true);
-              }
-            })
-            .catch((err) => {});
+          if (Platform.OS === "ios") {
+            fetch(res.url)
+              .then((res) => res.text())
+              .then((text) => {
+                if (
+                  text.indexOf("schema.org/VideoObject") > -1 &&
+                  (res.url.startsWith("https://www.iqiyi.com/v_") ||
+                    res.url.startsWith("https://m.iqiyi.com/v_"))
+                ) {
+                  webRef.current?.injectJavaScript(runFirst);
+                  webRef.current?.injectJavaScript(replaceVideo);
+                }
+              })
+              .catch((err) => {});
+          }
         }}
         onShouldStartLoadWithRequest={(res) => {
           //   webRef.current?.injectJavaScript(runFirst);
@@ -224,11 +219,22 @@ function MainWebView() {
         }}
         source={{ uri: "https://www.iqiyi.com/" }}
         onMessage={(src) => {
-          // alert("成功");
+          if (Platform.OS === "android") {
+            try {
+              const data = JSON.parse(src.nativeEvent.data);
+              if (data.type === "url" && videoUrl !== data.message?.url) {
+                setVideoUrl(data.message.url);
+                alert(src.nativeEvent.data);
+
+                webRef.current?.injectJavaScript(runFirst);
+                webRef.current?.injectJavaScript(replaceVideo);
+              }
+            } catch (error) {}
+          }
         }}
       />
 
-      {showVideo && (
+      {/* {showVideo && (
         <View
           style={[
             { width, height, position: "absolute" },
@@ -269,7 +275,7 @@ function MainWebView() {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      )} */}
     </View>
   );
 }
