@@ -118,7 +118,7 @@ ifrm.setAttribute(
   "src",
   "https://okjx.cc/?url=" + window.location.href
 );
-ifrm.setAttribute("allowfullscreen", false);
+
 ifrm.setAttribute("frameborder", "0");
 ifrm.setAttribute("scrolling", "no");
 ifrm.setAttribute("width", "100%");
@@ -135,12 +135,19 @@ for (let index = 0; index < document.getElementsByClassName("m-video-player-wrap
   item.remove();
 }
 document.getElementsByClassName("m-video-player-wrap")[0].appendChild(ifrm);
+//setVideo props，not allow fullscreen in ios
+
 window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
 `;
 
 const getCurrentUrl = `
  window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title},"type":"url"}));
 `;
+
+const biddenFullScreen = `
+document.getElementById("lelevideo").setAttribute("x5-playsinline", "");
+document.getElementById("lelevideo").setAttribute("playsinline", "");
+document.getElementById("lelevideo").setAttribute("webkit-playsinline", "");`;
 function MainWebView() {
   const { width, height } = useWindowDimensions();
   const webRef = useRef<WebView | null>(null);
@@ -173,6 +180,7 @@ function MainWebView() {
   return (
     <View style={[{ width, height: height - 50 }]}>
       <WebView
+        allowsInlineMediaPlayback={true}
         // injectedJavaScript={runFirst}
         ref={webRef}
         onLoadEnd={() => {
@@ -188,21 +196,21 @@ function MainWebView() {
           webRef.current?.injectJavaScript(runFirst);
           navigation.setOptions({ title: res.title });
           setCangoBack(res.canGoBack);
-          if (Platform.OS === "ios") {
-            fetch(res.url)
-              .then((res) => res.text())
-              .then((text) => {
-                if (
-                  text.indexOf("schema.org/VideoObject") > -1 &&
-                  (res.url.startsWith("https://www.iqiyi.com/v_") ||
-                    res.url.startsWith("https://m.iqiyi.com/v_"))
-                ) {
-                  webRef.current?.injectJavaScript(runFirst);
-                  webRef.current?.injectJavaScript(replaceVideo);
-                }
-              })
-              .catch((err) => {});
-          }
+
+          fetch(res.url)
+            .then((res) => res.text())
+            .then((text) => {
+              if (
+                text.indexOf("schema.org/VideoObject") > -1 &&
+                (res.url.startsWith("https://www.iqiyi.com/v_") ||
+                  res.url.startsWith("https://m.iqiyi.com/v_"))
+              ) {
+                webRef.current?.injectJavaScript(runFirst);
+                webRef.current?.injectJavaScript(replaceVideo);
+                webRef.current?.injectJavaScript(biddenFullScreen);
+              }
+            })
+            .catch((err) => {});
         }}
         onShouldStartLoadWithRequest={(res) => {
           //   webRef.current?.injectJavaScript(runFirst);
