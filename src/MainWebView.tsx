@@ -148,6 +148,23 @@ const biddenFullScreen = `
 document.getElementById("lelevideo").setAttribute("x5-playsinline", "");
 document.getElementById("lelevideo").setAttribute("playsinline", "");
 document.getElementById("lelevideo").setAttribute("webkit-playsinline", "");`;
+
+const addListener = `
+var myyVideo = document.getElementById("lelevideo");
+!myyVideo&&setInterval(() => {
+  if (!myyVideo) {
+   
+    myyVideo = document.getElementById("lelevideo");
+  }else{
+    alert("找到你了")
+  }
+}, 1000);
+
+document.getElementById("lelevideo").addEventListener("ended", function() {
+  window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"ended"}));
+})
+`;
+
 function MainWebView() {
   const { width, height } = useWindowDimensions();
   const webRef = useRef<WebView | null>(null);
@@ -181,8 +198,10 @@ function MainWebView() {
     <WebView
       style={[{ width, height: height }]}
       allowsInlineMediaPlayback={true}
-      mixedContentMode={"compatibility"}
-      allowsFullscreenVideo={true}
+      // mixedContentMode={"compatibility"}
+      mixedContentMode={"always"}
+      allowsFullscreenVideo
+      javaScriptEnabled={true}
       ref={webRef}
       onLoadEnd={() => {
         webRef.current?.injectJavaScript(runFirst);
@@ -209,6 +228,9 @@ function MainWebView() {
               webRef.current?.injectJavaScript(runFirst);
               webRef.current?.injectJavaScript(replaceVideo);
               webRef.current?.injectJavaScript(biddenFullScreen);
+              setTimeout(() => {
+                webRef.current?.injectJavaScript(addListener);
+              }, 2000);
             }
           })
           .catch((err) => {});
@@ -238,6 +260,12 @@ function MainWebView() {
             }
           } catch (error) {}
         }
+        try {
+          const data = JSON.parse(src.nativeEvent.data);
+          if (data.type === "notification" && data.message === "ended") {
+            alert("结束");
+          }
+        } catch (error) {}
       }}
     />
   );
