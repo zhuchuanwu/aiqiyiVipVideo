@@ -111,6 +111,7 @@ function destroyIframe(){
 `;
 
 const replaceVideo = `
+
 var ifrm = document.createElement("iframe");
 ifrm.setAttribute("id", "ifrm"); // assign an id
 // assign url
@@ -141,7 +142,11 @@ window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","mes
 `;
 
 const getCurrentUrl = `
+ 
  window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title},"type":"url"}));
+`;
+const getCurrentVideos = `
+ window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title,"videos":document.getElementsByClassName("m-video-player-wrap").length},"type":"url"}));
 `;
 
 const biddenFullScreen = `
@@ -168,22 +173,10 @@ document.getElementById("lelevideo").addEventListener("ended", function() {
 function MainWebView() {
   const { width, height } = useWindowDimensions();
   const webRef = useRef<WebView | null>(null);
-  const [showVideo, setShowVideo] = useState(false);
   const [cangoBack, setCangoBack] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
 
   const navigation = useNavigation();
-  useEffect(() => {
-    navigation.setOptions({ headerShown: !showVideo });
-    if (showVideo) {
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
-      );
-    } else {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
-    }
-    // }
-  }, [showVideo]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -209,31 +202,15 @@ function MainWebView() {
       onTouchEnd={() => {
         //安卓点击切换集数的时候 不走onNavigationStateChange，改用postmessage获取当前window href的方式
         if (Platform.OS === "android") {
-          webRef.current?.injectJavaScript(getCurrentUrl);
+          webRef.current?.injectJavaScript(getCurrentVideos);
         }
       }}
       onNavigationStateChange={(res) => {
         webRef.current?.injectJavaScript(runFirst);
-        navigation.setOptions({ title: res.title });
+
         setCangoBack(res.canGoBack);
-        setVideoUrl(res.url);
-        fetch(res.url)
-          .then((res) => res.text())
-          .then((text) => {
-            if (
-              text.indexOf("schema.org/VideoObject") > -1 &&
-              (res.url.startsWith("https://www.iqiyi.com/v_") ||
-                res.url.startsWith("https://m.iqiyi.com/v_"))
-            ) {
-              webRef.current?.injectJavaScript(runFirst);
-              webRef.current?.injectJavaScript(replaceVideo);
-              webRef.current?.injectJavaScript(biddenFullScreen);
-              setTimeout(() => {
-                webRef.current?.injectJavaScript(addListener);
-              }, 2000);
-            }
-          })
-          .catch((err) => {});
+        // setVideoUrl(res.url);
+        webRef.current?.injectJavaScript(getCurrentVideos);
       }}
       onShouldStartLoadWithRequest={(res) => {
         //   webRef.current?.injectJavaScript(runFirst);
@@ -250,20 +227,15 @@ function MainWebView() {
       }}
       source={{ uri: "https://www.iqiyi.com/" }}
       onMessage={(src) => {
-        if (Platform.OS === "android") {
-          try {
-            const data = JSON.parse(src.nativeEvent.data);
-            if (data.type === "url" && videoUrl !== data.message?.url) {
-              setVideoUrl(data.message.url);
+        try {
+          const data = JSON.parse(src.nativeEvent.data);
+          if (data.type === "url" && videoUrl !== data.message?.url) {
+            setVideoUrl(data.message.url);
+            navigation.setOptions({ title: data.message.title });
+            if (data.message.videos > 0) {
               webRef.current?.injectJavaScript(runFirst);
               webRef.current?.injectJavaScript(replaceVideo);
             }
-          } catch (error) {}
-        }
-        try {
-          const data = JSON.parse(src.nativeEvent.data);
-          if (data.type === "notification" && data.message === "ended") {
-            alert("结束");
           }
         } catch (error) {}
       }}
