@@ -225,12 +225,17 @@ function MainWebView() {
               (res.url.startsWith("https://www.iqiyi.com/v_") ||
                 res.url.startsWith("https://m.iqiyi.com/v_"))
             ) {
-              webRef.current?.injectJavaScript(runFirst);
-              webRef.current?.injectJavaScript(replaceVideo);
-              webRef.current?.injectJavaScript(biddenFullScreen);
-              setTimeout(() => {
-                webRef.current?.injectJavaScript(addListener);
-              }, 2000);
+              fetch("http://192.168.2.119:3000/api/getVideoUrl?url=" + res.url)
+                .then((res) => res.text())
+                .then((text) => {
+                  if (
+                    text.indexOf("schema.org/VideoObject") > -1 &&
+                    (res.url.startsWith("https://www.iqiyi.com/v_") ||
+                      res.url.startsWith("https://m.iqiyi.com/v_"))
+                  ) {
+                  }
+                })
+                .catch((err) => {});
             }
           })
           .catch((err) => {});
