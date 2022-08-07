@@ -139,6 +139,70 @@ document.getElementsByClassName("m-video-player-wrap")[0].appendChild(ifrm);
 
 window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
 `;
+const replaceMangguoVideo = `
+var ifrm = document.createElement("iframe");
+ifrm.setAttribute("id", "ifrm"); // assign an id
+// assign url
+ifrm.setAttribute(
+  "src",
+  "https://okjx.cc/?url=" + window.location.href
+);
+
+ifrm.setAttribute("frameborder", "0");
+ifrm.setAttribute("scrolling", "no");
+ifrm.setAttribute("width", "100%");
+ifrm.setAttribute("height", "100%");
+ifrm.setAttribute("style", "display:block;");
+ifrm.setAttribute("border", 0);
+ifrm.setAttribute("position", "absolute");
+
+
+document.getElementsByClassName("video-area")[0].style.paddingTop=0
+document.getElementsByClassName("video-area")[0].style.height="350px"
+try {
+  for (let index = 0; index < document.getElementsByClassName("video-area")[0].children.length; index++) {
+    let item = document.getElementsByClassName("video-area")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("video-area")[0].children.length; index++) {
+    let item = document.getElementsByClassName("video-area")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("video-area")[0].children.length; index++) {
+    let item = document.getElementsByClassName("video-area")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("video-area")[0].children.length; index++) {
+    let item = document.getElementsByClassName("video-area")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+document.getElementsByClassName("video-area")[0].appendChild(ifrm);
+try {
+  document.getElementsByClassName("vip-play-popover vip-popover")[0].hidden=true
+  document.getElementsByClassName("ad-banner")[0].hidden=true
+  document.getElementsByClassName("mg-app-swip mg-app-swip-on ")[0].hidden=true
+} catch (error) {
+  
+}
+
+//setVideo props，not allow fullscreen in ios
+window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
+`;
 
 const getCurrentUrl = `
  window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title},"type":"url"}));
@@ -217,23 +281,13 @@ function MainWebView() {
         navigation.setOptions({ title: res.title });
         setCangoBack(res.canGoBack);
         setVideoUrl(res.url);
-        fetch(res.url)
-          .then((res) => res.text())
-          .then((text) => {
-            if (
-              text.indexOf("schema.org/VideoObject") > -1 &&
-              (res.url.startsWith("https://www.iqiyi.com/v_") ||
-                res.url.startsWith("https://m.iqiyi.com/v_"))
-            ) {
-              webRef.current?.injectJavaScript(runFirst);
-              webRef.current?.injectJavaScript(replaceVideo);
-              webRef.current?.injectJavaScript(biddenFullScreen);
-              setTimeout(() => {
-                webRef.current?.injectJavaScript(addListener);
-              }, 2000);
-            }
-          })
-          .catch((err) => {});
+        webRef.current?.injectJavaScript(runFirst);
+        webRef.current?.injectJavaScript(replaceVideo);
+        webRef.current?.injectJavaScript(replaceMangguoVideo);
+        webRef.current?.injectJavaScript(biddenFullScreen);
+        setTimeout(() => {
+          webRef.current?.injectJavaScript(addListener);
+        }, 2000);
       }}
       onShouldStartLoadWithRequest={(res) => {
         //   webRef.current?.injectJavaScript(runFirst);
