@@ -19,3 +19,7 @@ export const useAppStore = () => {
   const rootStore = React.useContext(rootStoreContext);
   return rootStore.appStore;
 };
+export const useDropDown = () => {
+  const rootStore = React.useContext(rootStoreContext);
+  return rootStore.dropDownStore;
+};

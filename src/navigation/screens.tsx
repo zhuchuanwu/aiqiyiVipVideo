@@ -3,6 +3,10 @@ import React from "react";
 import { StackNavigationOptions } from "@react-navigation/stack/lib/typescript/src/types";
 import { RouteProp } from "@react-navigation/native";
 import MainWebView from "../MainWebView";
+import { View } from "react-native";
+import { t } from "react-native-tailwindcss";
+import RightButton from "../components/RightButton";
+import { dropDownStore } from "../mobx/dropdown.store";
 
 interface ScreenProps {
   name: string;

@@ -5,11 +5,7 @@ interface DropdownProps {
   directionY?: "top" | "bottom";
   directionX?: "left" | "right";
   title?: string;
-  items: {
-    icon: React.ReactNode;
-    onPress: () => void;
-    title: string;
-  }[];
+
   show: boolean;
   needDot?: boolean;
   needBg?: boolean;
@@ -56,7 +52,6 @@ export default class DropDownStore {
       this.directionX = dropdown.directionX;
     }
 
-    this.items = dropdown.items;
     this.show = dropdown.show;
     this.title = dropdown.title || "";
     this.needDot = dropdown.needDot || false;

@@ -11,27 +11,14 @@ export enum PositionTpe {
   center = "center",
   left = "left",
 }
-interface RenameBox {
-  show: boolean;
-  type?: RenameBoxTpe;
-  renameModalPosition?: PositionTpe;
-  defaultValue?: string;
-  showError?: boolean;
-  targetId: string;
-  errmessage?: string;
-  placeholder?: "";
-}
-interface AlertButtonProps {
+interface CurrentItem {
+  url: string;
   title: string;
 }
 interface ICurrentRouteprops {
   currentPage?: string;
 }
 
-interface ShareBoxprops {
-  show: boolean;
-  type: "file" | "noteBook";
-}
 interface AppAlert {
   show: boolean;
   title: string;
@@ -49,7 +36,10 @@ export default class AppStore {
     // 建议使用这种方式，自动识别类型，不需要再加前缀
     makeAutoObservable(this);
   }
-  menuTitle = "Documents";
+  currentItem: CurrentItem = {
+    url: "https://www.iqiyi.com/",
+    title: "爱奇艺",
+  };
   page: ICurrentRouteprops = { currentPage: "" };
 
   isLogout: boolean = false;
@@ -70,19 +60,7 @@ export default class AppStore {
   showNoteBook: boolean = false;
   showFileDetail: boolean = false;
   showNoteDetail: boolean = false;
-  renameBox: RenameBox = {
-    show: false,
-    defaultValue: "",
-    renameModalPosition: PositionTpe.center,
-    showError: false,
-    errmessage: "",
-    targetId: "",
-    placeholder: "",
-  };
-  shareBox: ShareBoxprops = {
-    show: false,
-    type: "file",
-  };
+
   networkStatus: boolean = true;
   halftransparentBg = false;
   showFileSelector: boolean = false;
@@ -98,17 +76,15 @@ export default class AppStore {
       };
     }
   };
-  setShareBox = (shareBox: ShareBoxprops) => {
-    this.shareBox = shareBox;
-  };
+
   setShowFileSelector = (show: boolean) => {
     this.showFileSelector = show;
   };
   setCurrentRoute = (page: ICurrentRouteprops) => {
     this.page = page;
   };
-  setMenuTitle = (num: string) => {
-    this.menuTitle = num;
+  setCurrentItem = (num: CurrentItem) => {
+    this.currentItem = num;
   };
   setAlert = (alert: AppAlert) => {
     this.alert = alert;
@@ -126,12 +102,7 @@ export default class AppStore {
   setShowNoteBookdetail = (show: boolean) => {
     this.showNoteDetail = show;
   };
-  setRenameBox = (renameBox: RenameBox) => {
-    this.renameBox = renameBox;
-  };
-  setHalftransparentBg = (show: boolean) => {
-    this.halftransparentBg = show;
-  };
+
   setIslogout = (logout: boolean) => {
     this.isLogout = logout;
   };

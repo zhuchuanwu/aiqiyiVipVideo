@@ -13,6 +13,9 @@ import { t } from "react-native-tailwindcss";
 import { useNavigation } from "@react-navigation/native";
 import NavigationLeftButton from "./navigation/NavigationLeftButton/NavigationLeftButton";
 import * as ScreenOrientation from "expo-screen-orientation";
+import RightButton from "./components/RightButton";
+import { useAppStore, useDropDown } from "./mobx";
+import { observer } from "mobx-react";
 
 const runFirst = `
 function destroyIframe(){ 
@@ -231,32 +234,54 @@ document.getElementById("lelevideo").addEventListener("ended", function() {
 
 function MainWebView() {
   const { width, height } = useWindowDimensions();
+
   const webRef = useRef<WebView | null>(null);
   const [showVideo, setShowVideo] = useState(false);
   const [cangoBack, setCangoBack] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
+  const { setDropdown } = useDropDown();
+  const { currentItem } = useAppStore();
 
   const navigation = useNavigation();
-  useEffect(() => {
-    navigation.setOptions({ headerShown: !showVideo });
-    if (showVideo) {
-      ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
-      );
-    } else {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
-    }
-    // }
-  }, [showVideo]);
-
+  // useEffect(() => {
+  //   navigation.setOptions({ headerShown: !showVideo });
+  //   if (showVideo) {
+  //     ScreenOrientation.lockAsync(
+  //       ScreenOrientation.OrientationLock.LANDSCAPE_LEFT
+  //     );
+  //   } else {
+  //     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.ALL);
+  //   }
+  //   // }
+  // }, [showVideo]);
+  // alert(JSON.stringify(currentItem));
   useEffect(() => {
     navigation.setOptions({
       headerLeft: () =>
         cangoBack ? (
           <NavigationLeftButton onPress={() => webRef.current?.goBack()} />
         ) : null,
+      headerRight: () => (
+        <View style={[t.mR6]}>
+          <RightButton
+            title={currentItem.title}
+            onPress={() => {
+              debugger;
+              setDropdown({
+                position: { x: 0, y: 40 },
+                directionY: "bottom",
+                needDot: true,
+                directionX: "left",
+                title: "",
+                show: true,
+                needBg: true,
+              });
+            }}
+          />
+        </View>
+      ),
     });
-  }, [cangoBack]);
+  }, [cangoBack, currentItem]);
 
   return (
     <WebView
@@ -278,7 +303,13 @@ function MainWebView() {
       }}
       onNavigationStateChange={(res) => {
         webRef.current?.injectJavaScript(runFirst);
-        navigation.setOptions({ title: res.title });
+        navigation.setOptions({
+          title: res.title.length > 10 ? res.title.substring(0, 10) : res.title,
+          headerLeft: () =>
+            cangoBack ? (
+              <NavigationLeftButton onPress={() => webRef.current?.goBack()} />
+            ) : null,
+        });
         setCangoBack(res.canGoBack);
         setVideoUrl(res.url);
         webRef.current?.injectJavaScript(runFirst);
@@ -302,7 +333,7 @@ function MainWebView() {
         }
         return false;
       }}
-      source={{ uri: "https://www.iqiyi.com/" }}
+      source={{ uri: currentItem.url }}
       onMessage={(src) => {
         if (Platform.OS === "android") {
           try {
@@ -325,4 +356,4 @@ function MainWebView() {
   );
 }
 
-export default MainWebView;
+export default observer(MainWebView);
