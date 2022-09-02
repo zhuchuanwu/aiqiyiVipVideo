@@ -262,7 +262,8 @@ try {
 document.getElementsByClassName("player-box")[0].appendChild(ifrm);
 try {
   document.getElementsByClassName("clipboard h5-detail-guide")[0].hidden=true
-  document.getElementsByClassName("clipboard h5-detail-vip-guide")[0].hidden=true
+  document.getElementsByClassName("clipboard h5-detail-guide")[0].hidden=true
+  document.getElementsByClassName("callEnd_fixed_box")[0].hidden=true
   document.getElementsByClassName("icon downloadApp")[0].hidden=true
   document.getElementsByClassName("mg-app-swip mg-app-swip-on ")[0].hidden=true
 } catch (error) {
