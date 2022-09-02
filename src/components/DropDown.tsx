@@ -50,6 +50,13 @@ function DropDown() {
       },
       title: "芒果TV",
     },
+    {
+      icon: null,
+      onPress: () => {
+        setCurrentItem({ url: "https://www.youku.com/", title: "优酷" });
+      },
+      title: "优酷",
+    },
   ];
   return show ? (
     <Portal>

@@ -207,6 +207,71 @@ try {
 window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
 `;
 
+const replaceYoukuVideo = `
+var ifrm = document.createElement("iframe");
+ifrm.setAttribute("id", "ifrm"); // assign an id
+// assign url
+ifrm.setAttribute(
+  "src",
+  "https://okjx.cc/?url=" + window.location.href
+);
+
+ifrm.setAttribute("frameborder", "0");
+ifrm.setAttribute("scrolling", "no");
+ifrm.setAttribute("width", "100%");
+ifrm.setAttribute("height", "100%");
+ifrm.setAttribute("style", "display:block;");
+ifrm.setAttribute("border", 0);
+ifrm.setAttribute("position", "absolute");
+
+
+document.getElementsByClassName("player-box")[0].style.paddingTop=0
+document.getElementsByClassName("player-box")[0].style.height="350px"
+try {
+  for (let index = 0; index < document.getElementsByClassName("player-box")[0].children.length; index++) {
+    let item = document.getElementsByClassName("player-box")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("player-box")[0].children.length; index++) {
+    let item = document.getElementsByClassName("player-box")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("player-box")[0].children.length; index++) {
+    let item = document.getElementsByClassName("player-box")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+try {
+  for (let index = 0; index < document.getElementsByClassName("player-box")[0].children.length; index++) {
+    let item = document.getElementsByClassName("player-box")[0].children[index];
+    item.remove();
+  }
+} catch (error) {
+  
+}
+document.getElementsByClassName("player-box")[0].appendChild(ifrm);
+try {
+  document.getElementsByClassName("clipboard h5-detail-guide")[0].hidden=true
+  document.getElementsByClassName("clipboard h5-detail-vip-guide")[0].hidden=true
+  document.getElementsByClassName("icon downloadApp")[0].hidden=true
+  document.getElementsByClassName("mg-app-swip mg-app-swip-on ")[0].hidden=true
+} catch (error) {
+  
+}
+
+//setVideo props，not allow fullscreen in ios
+window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"success"}));
+`;
 const getCurrentUrl = `
  window.ReactNativeWebView.postMessage(JSON.stringify({"message":{"url":window.location.href,"title":document.title},"type":"url"}));
 `;
@@ -231,7 +296,16 @@ document.getElementById("lelevideo").addEventListener("ended", function() {
   window.ReactNativeWebView.postMessage(JSON.stringify({"type":"notification","message":"ended"}));
 })
 `;
-
+const INJECTED_JAVASCRIPT = `(function() {
+  var open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function() {
+      this.addEventListener("load", function() {
+          console.log(this.request);
+          var message = {"status" : this.status, "response" : this.response}
+          window.ReactNativeWebView.postMessage(JSON.stringify(message));
+      });
+      open.apply(this, arguments);
+  };})();`;
 function MainWebView() {
   const { width, height } = useWindowDimensions();
 
@@ -291,6 +365,7 @@ function MainWebView() {
       mixedContentMode={"always"}
       allowsFullscreenVideo
       javaScriptEnabled={true}
+      injectedJavaScript={INJECTED_JAVASCRIPT}
       ref={webRef}
       onLoadEnd={() => {
         webRef.current?.injectJavaScript(runFirst);
@@ -310,17 +385,21 @@ function MainWebView() {
               <NavigationLeftButton onPress={() => webRef.current?.goBack()} />
             ) : null,
         });
+        fetch("http://localhost:3000/api/getVideoUrl?url=" + res.url);
         setCangoBack(res.canGoBack);
         setVideoUrl(res.url);
         webRef.current?.injectJavaScript(runFirst);
         webRef.current?.injectJavaScript(replaceVideo);
         webRef.current?.injectJavaScript(replaceMangguoVideo);
+        webRef.current?.injectJavaScript(replaceYoukuVideo);
         webRef.current?.injectJavaScript(biddenFullScreen);
         setTimeout(() => {
           webRef.current?.injectJavaScript(addListener);
         }, 2000);
       }}
       onShouldStartLoadWithRequest={(res) => {
+        console.log(res.url);
+
         //   webRef.current?.injectJavaScript(runFirst);
         if (res.url.indexOf("www.iqiyi.com/app") > -1) {
           return false;
@@ -335,6 +414,7 @@ function MainWebView() {
       }}
       source={{ uri: currentItem.url }}
       onMessage={(src) => {
+        console.log(src.nativeEvent.data);
         if (Platform.OS === "android") {
           try {
             const data = JSON.parse(src.nativeEvent.data);
